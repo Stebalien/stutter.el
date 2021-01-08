@@ -1,0 +1,16 @@
+#+TITLE: stutter.el
+
+An emacs package to improve performance of emacs-based shells when outputting large amounts of text.
+
+* Description
+When outputting large amounts of text (e.g., ~git log~), emacs-based shells (e.g., ~eshell~, ~shell~, ~term~) are unable to keep up. This is performance issue is primarily due to the cost of actually rendering the text to the screen ("redisplay"), only to scroll right past it.
+
+Stutter solves this issue by repeatedly pausing redisplay in rapidly growing buffers. The downside is that such buffers appear to "stutter". The upside is that commands like ~git log~ finish /much/ faster.
+* Known Issues
+- I've tested this in eshell and comint derived modes. This mode will attempt to hook into the ~after-change-functions~ hook in other buffers (when enabled), but that hasn't been thoroughly tested.
+- This mode relies on the buffer /growing/ to decide when to "stutter". It will stop not work properly if your shell has a scroll-back limit.
+  - It should be possible to fix this by using marks and/or overlays to track text appended to the end of the buffer. Patches welcome.
+- This mode will cause output to stutter...
+
+
+

@@ -1,4 +1,4 @@
-;;; stutter-mode.el --- pauses redisplay on heavy output -*- lexical-binding: t -*-
+;;; stutter.el --- pauses redisplay on heavy output -*- lexical-binding: t -*-
 
 ;; Copyright 2020 Steven Allen <steven@stebalien.com>
 
@@ -73,4 +73,4 @@
         (add-hook hook #'stutter 100 'local)
       (remove-hook hook #'stutter 'local))))
 
-(provide 'stutter-mode)
+(provide 'stutter)

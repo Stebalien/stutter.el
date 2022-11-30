@@ -30,12 +30,40 @@
 ;; An emacs package to improve performance of emacs-based shells when outputting
 ;; large amounts of text.
 
+;; When the buffer is rapidly growing, stutter-mode will inhibit redisplay (for
+;; this buffer only) for 100ms every 50ms (i.e., on 50ms, off 100ms, repeat).
+;; It'll make the buffer look like it's stuttering, hence the name.
+
 ;;; Requirements:
 
 ;; Emacs 27.0.0
 
 ;;; Code:
+
+;;;; Requirements
+
 (require 'timer)
+
+;;;; Customization
+
+(defgroup stutter nil
+  "Defers redisplay on heavy output for better performance."
+  :link '(url-link "https://github.com/Stebalien/stutter.el"))
+
+(defcustom stutter-growth-check-delay 0.05
+  "How long to wait before evaluating buffer growth"
+  :type 'float)
+
+(defcustom stutter-minimum-growth 4096
+  "How much the buffer must grow (in stutter-growth-check-delay
+seconds) before stutter-mode inhibits redisplay"
+  :type 'natnum)
+
+(defcustom stutter-pause-time 0.1
+  "How long to inhibit redisplay when the buffer is growing rapidly"
+  :type 'float)
+
+;;;; Variables
 
 (defvar-local stutter--resume-timer nil)
 (defvar-local stutter--old-buffer-size 0)
@@ -53,15 +81,16 @@
   (unless stutter--resume-timer
     (let ((now (float-time))
           (new-size (buffer-size)))
-      (unless (< now (+ stutter--last-check-time 0.05))
-        (when (> new-size (+ stutter--old-buffer-size 4096))
+      (unless (< now (+ stutter--last-check-time stutter-growth-check-delay))
+        (when (> new-size (+ stutter--old-buffer-size stutter-minimum-growth))
           (setq inhibit-redisplay t
-                stutter--resume-timer (run-at-time 0.1 nil
+                stutter--resume-timer (run-at-time stutter-pause-time nil
                                                    #'stutter--resume
                                                    (current-buffer))))
         (setq stutter--old-buffer-size new-size
               stutter--last-check-time now)))))
 
+;;;###autoload
 (define-minor-mode stutter-mode
   "Defer redisplay while large buffer changes are underway"
   :lighter " Stutter"
@@ -73,4 +102,7 @@
         (add-hook hook #'stutter 100 'local)
       (remove-hook hook #'stutter 'local))))
 
+;;;; Footer
+
 (provide 'stutter)
+;;; stutter.el ends here
